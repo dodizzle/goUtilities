@@ -13,7 +13,7 @@ func main() {
 	all := "ABCDEFGHIJKLMNOPQRSTUVWXYZ" +
 		"abcdefghijklmnopqrstuvwxyz" +
 		digits + specials
-	length := 12
+	length := 11
 	buf := make([]byte, length)
 	buf[0] = digits[rand.Intn(len(digits))]
 	buf[1] = specials[rand.Intn(len(specials))]
