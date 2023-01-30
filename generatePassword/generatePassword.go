@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	rand "math/rand"
+	"strings"
 	"time"
 )
 
@@ -25,4 +26,12 @@ func main() {
 	})
 	str := string(buf)
 	fmt.Println(str)
+	foo := downcase("ASFA")
+	fmt.Println(foo)
+
+
+// return text as lowercase
+func downcase(text string) string {
+	return strings.ToLower(text)
+}
 }
