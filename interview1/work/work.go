@@ -1,10 +1,10 @@
-package main
+package work
 
 import (
 	"math"
 )
 
-func closestToZero(nums []int) int {
+func ClosestToZero(nums []int) int {
 	if nums == nil {
 		return -1
 	}
@@ -14,13 +14,13 @@ func closestToZero(nums []int) int {
 
 	closest := nums[0]
 	for _, num := range nums {
-		if positiveValue(num) < positiveValue(closest) || (positiveValue(num) == positiveValue(closest) && num > closest) {
+		if PositiveValue(num) < PositiveValue(closest) || (PositiveValue(num) == PositiveValue(closest) && num > closest) {
 			closest = num
 		}
 	}
 	return closest
 }
 
-func positiveValue(num int) int {
+func PositiveValue(num int) int {
 	return int(math.Abs(float64(num)))
 }
