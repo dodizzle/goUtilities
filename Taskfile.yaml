@@ -1,13 +1,13 @@
 version: '3'
 
 tasks:
-  a:
-    desc: pwd
+  sync:
+    desc: Sync the Taskfile.yaml to ~
     cmds:
-      - pwd
+      - curl https://raw.githubusercontent.com/dodizzle/goUtilities/refs/heads/main/Taskfile.yaml -o ~/Taskfile.yaml
 
-  b:
-    desc: fwd
+  G:
+    desc: Go to golang home
     dir: '{{.USER_WORKING_DIR}}'
     cmds:
-      - pwd
+      - 
