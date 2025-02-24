@@ -1,0 +1,44 @@
+services:
+  db:
+    hostname: db
+    container_name: db
+    image: postgres:11
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=postgres
+      - PGDATA=/var/lib/data/
+    volumes:
+      - ./pgdata:/var/lib/data
+      - ./bootstrap.sql:/docker-entrypoint-initdb.d/bootstrap.sql
+    ports:
+      - 5432:5432
+    command:
+      - "postgres"
+      - "-c"
+      - "wal_level=logical"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  # webservice:
+  #   image: webservice:latest
+  #   container_name: webservice
+  #   pull_policy: if_not_present
+  #   ports:
+  #     - 8080:8080
+  #   depends_on:
+  #     sleep:
+  #       condition: service_completed_successfully
+
+  # sleep:
+  #   image: alpine:latest
+  #   command:
+  #     - "sh"
+  #     - "-c"
+  #     - "sleep 30"
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
