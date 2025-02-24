@@ -4,7 +4,9 @@ tasks:
   sync:
     desc: Sync the Taskfile.yaml to ~
     cmds:
-      - curl https://raw.githubusercontent.com/dodizzle/goUtilities/refs/heads/main/Taskfile.yaml -o ~/Taskfile.yaml
+      - gh repo clone dodizzle/goUtilities /tmp/dodizzle/goUtilities
+      - cp /tmp/dodizzle/goUtilities/Taskfile.yaml ~/
+      - rm -rf /tmp/dodizzle/goUtilities
 
   G:
     desc: Go to golang home
