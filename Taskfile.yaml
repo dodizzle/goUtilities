@@ -1,0 +1,13 @@
+version: '3'
+
+tasks:
+  a:
+    desc: pwd
+    cmds:
+      - pwd
+
+  b:
+    desc: fwd
+    dir: '{{.USER_WORKING_DIR}}'
+    cmds:
+      - pwd
