@@ -3,13 +3,11 @@ package ifs
 import "fmt"
 
 func Ifs() {
-	var x []int
-	x = append(x, 12, 23, 34)
-	n := 0
-	count := len(x)
-	for n <= count {
-		fmt.Println(count, x[n])
-		n++
+	var x int
+	x = 6
+	y := 9
+	if x < y {
+		fmt.Printf("%d is less than %d\n", x, y)
 	}
 
 }
