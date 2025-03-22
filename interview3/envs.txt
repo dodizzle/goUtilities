@@ -1,0 +1,11 @@
+TERM_PROGRAM=vscode
+TERM=xterm-256color
+SHELL=/bin/bash
+HISTSIZE=5000
+TMPDIR=/var/folders/my/mw88nlvd66v0j3cjgqbzv_vr0000gn/T/
+TERM_PROGRAM_VERSION=1.98.2
+ORIGINAL_XDG_CURRENT_DESKTOP=undefined
+MallocNanoZone=0
+HISTFILESIZE=100000
+USER=davidodell
+COMMAND_MODE=unix2003

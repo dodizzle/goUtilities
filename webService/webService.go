@@ -25,7 +25,7 @@ var stat = []status{
 func init() {
 	m, err := migrate.New(
 		"file://migrations",
-		"postgres://postgres:postgres@localhost:5432/webservice?sslmode=disable")
+		"postgres://postgres:postgres@db:5432/webservice?sslmode=disable")
 	CheckError(err)
 	m.Up()
 
@@ -35,7 +35,7 @@ func main() {
 	// connect to postgres database
 	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 		"password=%s dbname=%s sslmode=disable",
-		"127.0.0.1", 5432, "postgres", "postgres", "webservice")
+		"db", 5432, "postgres", "postgres", "webservice")
 	db, err := sql.Open("postgres", psqlInfo)
 
 	CheckError(err)
@@ -54,30 +54,70 @@ func main() {
 
 	// add a route to write json to the database
 	router.POST("/users", postUsers)
+	router.GET("/users/:id", getUser)
 	router.Run("0.0.0.0:8080")
 }
 
 // write json to the database
 func postUsers(c *gin.Context) {
 	var json struct {
-		user_id  int
 		Username string `json:"username"`
 		Email    string `json:"email"`
 	}
 	if c.BindJSON(&json) == nil {
 		psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
 			"password=%s dbname=%s sslmode=disable",
-			"127.0.0.1", 5432, "postgres", "postgres", "webservice")
+			"db", 5432, "postgres", "postgres", "webservice")
 		db, err := sql.Open("postgres", psqlInfo)
 		CheckError(err)
+		defer db.Close()
+
 		sqlStatement := `
-	INSERT INTO users (username, email)
-	VALUES ($1, $2)`
-		user_id := 0
-		_, err = db.Exec(sqlStatement, json.Username, json.Email)
-		CheckError(err)
-		fmt.Println(user_id)
+        INSERT INTO users (username, email)
+        VALUES ($1, $2)
+        RETURNING id`
+		var userID int
+		err = db.QueryRow(sqlStatement, json.Username, json.Email).Scan(&userID)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"message": "Error inserting user"})
+			CheckError(err)
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{"message": "User inserted", "user_id": userID})
+		fmt.Printf("Inserted user: %s, %s with ID: %d\n", json.Username, json.Email, userID)
+	} else {
+		c.JSON(http.StatusBadRequest, gin.H{"message": "Invalid JSON"})
 	}
+}
+
+func getUser(c *gin.Context) {
+	id := c.Param("id")
+	psqlInfo := fmt.Sprintf("host=%s port=%d user=%s "+
+		"password=%s dbname=%s sslmode=disable",
+		"db", 5432, "postgres", "postgres", "webservice")
+	db, err := sql.Open("postgres", psqlInfo)
+	CheckError(err)
+	defer db.Close()
+
+	var user struct {
+		ID       int    `json:"id"`
+		Username string `json:"username"`
+		Email    string `json:"email"`
+	}
+
+	sqlStatement := `SELECT id, username, email FROM users WHERE id=$1`
+	row := db.QueryRow(sqlStatement, id)
+	err = row.Scan(&user.ID, &user.Username, &user.Email)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			c.JSON(http.StatusNotFound, gin.H{"message": "User not found"})
+			return
+		}
+		CheckError(err)
+	}
+
+	c.JSON(http.StatusOK, user)
 }
 
 // convert value of json key to uppercase and return as json
@@ -112,6 +152,7 @@ func getHealth(c *gin.Context) {
 
 func CheckError(err error) {
 	if err != nil {
+		fmt.Printf("Error: %v\n", err)
 		panic(err)
 	}
 }
