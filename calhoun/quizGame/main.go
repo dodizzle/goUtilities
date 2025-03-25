@@ -7,7 +7,11 @@ import (
 	"io"
 	"os"
 	"strings"
+	"time"
 )
+
+var userResp string
+var scoreCard []bool
 
 // packages to use are flags, csv,os, channels, go routines, time
 func getArgs() (*string, *int) {
@@ -42,26 +46,42 @@ func testAnswer(r string, a string) bool {
 	return r == a
 }
 
-func main() {
-	fileName, _ := getArgs()
-	quiz := map[string]string{}
-	parseCSV(*fileName, quiz)
-	var userResp string
-	var scoreCard []bool
+func runQuiz(quiz map[string]string, done chan bool) {
+	correct := 0
+	incorrect := 0
 	for question, answer := range quiz {
 		fmt.Printf("Question: %s\n", question)
 		fmt.Scan(&userResp)
 		result := testAnswer(userResp, answer)
 		scoreCard = append(scoreCard, result)
-	}
-	correct := 0
-	incorrect := 0
-	for _, v := range scoreCard {
-		if v {
-			correct++
-		} else {
-			incorrect++
+		for _, v := range scoreCard {
+			if v {
+				correct++
+			} else {
+				incorrect++
+			}
+		}
+		for {
+			select {
+			case <-done:
+				return
+			}
 		}
 	}
+
 	fmt.Printf("Final score: %d correct, %d incorrect\n", correct, incorrect)
+
+}
+
+func main() {
+	fileName, _ := getArgs()
+	quiz := map[string]string{}
+	parseCSV(*fileName, quiz)
+	done := make(chan bool)
+	go runQuiz(quiz, done)
+	time.Sleep(10 * time.Second)
+	done <- true
+	time.Sleep(100 * time.Millisecond)
+
+	fmt.Println("Program complete")
 }
