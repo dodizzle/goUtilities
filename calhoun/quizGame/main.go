@@ -11,12 +11,11 @@ import (
 )
 
 var userResp string
-var scoreCard []bool
 
 // packages to use are flags, csv,os, channels, go routines, time
-func getArgs() (*string, *int) {
+func getArgs() (*string, *time.Duration) {
 	fName := flag.String("file", "problems.csv", "a csv file in the format of 'question,answer'")
-	timeLimit := flag.Int("limit", 10, "the time limit for the quiz in seconds")
+	timeLimit := flag.Duration("limit", 10*time.Second, "the time limit for the quiz in seconds")
 	flag.Parse()
 	return fName, timeLimit
 }
@@ -47,41 +46,37 @@ func testAnswer(r string, a string) bool {
 }
 
 func runQuiz(quiz map[string]string, done chan bool) {
+	var scoreCard []bool
 	correct := 0
 	incorrect := 0
 	for question, answer := range quiz {
-		fmt.Printf("Question: %s\n", question)
-		fmt.Scan(&userResp)
-		result := testAnswer(userResp, answer)
-		scoreCard = append(scoreCard, result)
-		for _, v := range scoreCard {
-			if v {
-				correct++
-			} else {
-				incorrect++
+		select {
+		case <-done:
+			for _, v := range scoreCard {
+				if v {
+					correct++
+				} else {
+					incorrect++
+				}
 			}
-		}
-		for {
-			select {
-			case <-done:
-				return
-			}
+			fmt.Printf("Final score: %d correct, %d incorrect\n", correct, incorrect)
+			return
+		default:
+			fmt.Printf("Question: %s\n", question)
+			fmt.Scan(&userResp)
+			result := testAnswer(userResp, answer)
+			scoreCard = append(scoreCard, result)
 		}
 	}
-
-	fmt.Printf("Final score: %d correct, %d incorrect\n", correct, incorrect)
-
 }
 
 func main() {
-	fileName, _ := getArgs()
+	fileName, timeLimit := getArgs()
 	quiz := map[string]string{}
 	parseCSV(*fileName, quiz)
 	done := make(chan bool)
 	go runQuiz(quiz, done)
-	time.Sleep(10 * time.Second)
+	time.Sleep(*timeLimit)
 	done <- true
 	time.Sleep(100 * time.Millisecond)
-
-	fmt.Println("Program complete")
 }
